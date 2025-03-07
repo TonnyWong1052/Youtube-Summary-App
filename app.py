@@ -241,7 +241,7 @@ def main():
                 transcript = get_youtube_transcript(video_id)
                 transcript = json.dumps(transcript, indent=4) # Convert to JSON for debugging   
                 transcript = json.loads(transcript)
-                
+                print("123")
                 print(transcript)
                 
                 if transcript:
