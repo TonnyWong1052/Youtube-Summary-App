@@ -139,7 +139,7 @@ def get_youtube_transcript(language_code: str, video_id: str) -> List[Dict]:
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
         return transcript
     except Exception as e:
-        st.warning(f"YouTube Transcript API error: {str(e)}. Trying alternative API...")
+        # st.warning(f"YouTube Transcript API error: {str(e)}. Trying alternative API...")
         
         # Fallback to alternative API
         try:
