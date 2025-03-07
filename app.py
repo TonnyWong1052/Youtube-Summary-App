@@ -164,20 +164,46 @@ def format_time(seconds: float) -> str:
     minutes, seconds = divmod(remainder, 60)
     return f"{hours:02}:{minutes:02}:{seconds:02}"
 
-def generate_summary(transcript: List[Dict], language: str) -> str:
-    """Generate basic summary using LLM API."""
+def generate_summary(transcript: List[Dict], language: str, summary_type: str) -> str:
+    """Generate summary using LLM API based on selected summary type."""
     transcript_text = "\n".join([f"{format_time(float(entry['start']))}: {entry['text']}" for entry in transcript if isinstance(entry, dict) and 'start' in entry and 'text' in entry])
     
     system_prompt = "You are a helpful assistant that creates summaries of YouTube videos from transcripts."
-    user_prompt = f"""
-    Please analyze the following YouTube video transcript and create a comprehensive summary.
-    The summary should capture the main points and key information from the video.
     
-    Language for the summary: {language}
+    # Adjust the prompt based on summary type
+    if summary_type == "detailed":
+        user_prompt = f"""
+        Please analyze the following YouTube video transcript and create a DETAILED summary.
+        Include all important points, key arguments, examples, and data mentioned.
+        Structure the summary with clear sections and bullet points where appropriate.
+        
+        Language for the summary: {language}
+        
+        Here's the transcript:
+        {transcript_text}
+        """
+    elif summary_type == "brief":
+        user_prompt = f"""
+        Please analyze the following YouTube video transcript and create a BRIEF summary.
+        Focus only on the main ideas and core message of the video - keep it concise.
+        Limit to 3-5 key takeaways in a short format.
+        
+        Language for the summary: {language}
+        
+        Here's the transcript:
+        {transcript_text}
+        """
+    else:  # normal
+        user_prompt = f"""
+        Please analyze the following YouTube video transcript and create a balanced summary.
+        Capture the main points and key information from the video in a standard length summary.
+        
+        Language for the summary: {language}
+        
+        Here's the transcript:
+        {transcript_text}
+        """
     
-    Here's the transcript:
-    {transcript_text}
-    """
     st.session_state.prompt = user_prompt
 
     try:
@@ -218,12 +244,12 @@ def main():
     # Input section with card styling
     st.markdown('### 🎬 Enter YouTube Video')
     
-    col1, col2 = st.columns([3, 1])
-
-    with col1:
+    cols = st.columns(1)
+    cols2 = st.columns(2)
+    with cols[0]:
         youtube_url = st.text_input("", placeholder="Paste YouTube URL here...", key="youtube_url")
 
-    with col2:
+    with cols2[0]:
         languages = {
             "en": "🇬🇧 English",
             "zh-TW": "🇹🇼 Traditional Chinese",
@@ -234,7 +260,16 @@ def main():
         }
         language = st.selectbox("Summary Language", options=list(languages.keys()), format_func=lambda x: languages[x])
         st.markdown('</div>', unsafe_allow_html=True)
+    with cols2[1]:
+        summary_type = {
+            "Normal",
+            "Brief",
+            "Detailed"
+        }
+        summary_type = st.selectbox("Summary Type", ["Normal", "Brief", "Detailed"], index=0)
+        st.markdown('</div>', unsafe_allow_html=True)
 
+    
     # Generate summary button with animation
     if st.button("✨ Generate Summary"):
         if youtube_url:
@@ -269,7 +304,7 @@ def main():
                     progress_bar.progress(60)
                     
                     # Generate summary
-                    summary = generate_summary(transcript , language)
+                    summary = generate_summary(transcript, language, summary_type.lower())
                     
                     # Update progress
                     progress_bar.progress(100)
