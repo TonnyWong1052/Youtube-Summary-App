@@ -1,5 +1,6 @@
 import streamlit as st
 import re
+import json
 from typing import Dict, List
 from youtube_transcript_api import YouTubeTranscriptApi
 from llm import answer
@@ -243,24 +244,20 @@ def main():
                     # Update progress
                     status_text.text("Generating summary...")
                     progress_bar.progress(60)
+                    time.sleep(0.3)
                     
                     # Generate summary
                     summary = generate_summary(transcript, language)
                     
-                    # Update progress
+                    # Complete the progress
                     progress_bar.progress(100)
-                    status_text.empty()
+                    status_text.text("Summary generated!")
+                    time.sleep(0.5)
                     progress_bar.empty()
+                    status_text.empty()
                     
-                    if summary:
-                        st.session_state.summary = summary
-                        st.success("✅ Summary generated successfully!")
-                    else:
-                        st.error("Failed to generate summary.")
-                else:
-                    progress_bar.empty()
-                    status_text.empty()
-                    st.error("Failed to get transcript. The video might not have subtitles or captions.")
+                    # Store the summary in session state
+                    st.session_state.summary = summary
             else:
                 progress_bar.empty()
                 status_text.empty()
@@ -272,6 +269,7 @@ def main():
 
     # Display summary with card styling and animation
     if st.session_state.summary:
+
         st.markdown('### 📋 Video Summary')
         st.markdown(st.session_state.summary)
         st.markdown('</div>', unsafe_allow_html=True)
