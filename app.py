@@ -150,6 +150,7 @@ def get_youtube_transcript(language_code: str, video_id: str) -> List[Dict]:
                 # Parse the response JSON
                 transcript_data = response.json()
                 # Format it to match YouTubeTranscriptApi format if needed
+                print(transcript_data)
                 return transcript_data
             else:
                 st.error(f"Alternative API request failed with status code: {response.status_code}")
