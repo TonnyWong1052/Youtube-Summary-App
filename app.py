@@ -148,7 +148,7 @@ def format_time(seconds: float) -> str:
 
 def generate_summary(transcript: List[Dict], language: str) -> str:
     """Generate basic summary using LLM API."""
-    transcript_text = "\n".join([f"{format_time(float(entry['start']))}: {entry['text']}" for entry in transcript])
+    transcript_text = "\n".join([f"{format_time(float(entry['start']))}: {entry['text']}" for entry in transcript if isinstance(entry, dict) and 'start' in entry and 'text' in entry])
 
     system_prompt = "You are a helpful assistant that creates summaries of YouTube videos from transcripts."
     user_prompt = f"""
@@ -239,25 +239,30 @@ def main():
                 
                 # Get transcript
                 transcript = get_youtube_transcript(video_id)
-                
+                transcript = json.dumps(transcript, indent=4) # Convert to JSON for debugging   
+
                 if transcript:
                     # Update progress
                     status_text.text("Generating summary...")
                     progress_bar.progress(60)
-                    time.sleep(0.3)
                     
                     # Generate summary
-                    summary = generate_summary(transcript, language)
+                    summary = generate_summary(transcript , language)
                     
-                    # Complete the progress
+                    # Update progress
                     progress_bar.progress(100)
-                    status_text.text("Summary generated!")
-                    time.sleep(0.5)
+                    status_text.empty()
+                    progress_bar.empty()
+                    
+                    if summary:
+                        st.session_state.summary = summary
+                        st.success("✅ Summary generated successfully!")
+                    else:
+                        st.error("Failed to generate summary.")
+                else:
                     progress_bar.empty()
                     status_text.empty()
-                    
-                    # Store the summary in session state
-                    st.session_state.summary = summary
+                    st.error("Failed to get transcript. The video might not have subtitles or captions.")
             else:
                 progress_bar.empty()
                 status_text.empty()
