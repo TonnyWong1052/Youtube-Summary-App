@@ -1,0 +1,4 @@
+openai~=1.65.4
+toml~=0.10.2
+streamlit~=1.43.0
+youtube_transcript_api
