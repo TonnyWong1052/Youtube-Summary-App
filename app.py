@@ -166,7 +166,7 @@ def generate_summary(transcript: List[Dict], language: str) -> str:
         # Animated loading simulation
         with st.spinner("🧠 Analyzing transcript..."):
             # Call the answer function from llm.py
-            summary_text = answer(system_prompt, user_prompt, "github")
+            summary_text = answer(system_prompt, user_prompt, "openrouter")
             # Add slight delay for transition effect
             time.sleep(0.5)
             
