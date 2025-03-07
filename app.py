@@ -5,6 +5,7 @@ from typing import Dict, List
 from youtube_transcript_api import YouTubeTranscriptApi
 from llm import answer
 import time
+import requests
 
 # Set up page configuration
 st.set_page_config(
@@ -131,14 +132,31 @@ def extract_video_id(url: str) -> str:
             return match.group(1)
     return ""
 
-def get_youtube_transcript(video_id: str) -> List[Dict]:
+def get_youtube_transcript(language_code: str, video_id: str) -> List[Dict]:
     """Get the transcript of a YouTube video."""
     try:
+        # First attempt with YouTubeTranscriptApi
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
         return transcript
     except Exception as e:
-        st.error(f"Error fetching transcript: {str(e)}")
-        return []
+        st.warning(f"YouTube Transcript API error: {str(e)}. Trying alternative API...")
+        
+        # Fallback to alternative API
+        try:
+            fallback_url = f"https://yt.vl.comp.polyu.edu.hk/transcript?language_code={language_code}&password=for_demo&video_id={video_id}"
+            response = requests.get(fallback_url)
+            
+            if response.status_code == 200:
+                # Parse the response JSON
+                transcript_data = response.json()
+                # Format it to match YouTubeTranscriptApi format if needed
+                return transcript_data
+            else:
+                st.error(f"Alternative API request failed with status code: {response.status_code}")
+                return []
+        except Exception as fallback_error:
+            st.error(f"Error with alternative transcript API: {str(fallback_error)}")
+            return []
 
 def format_time(seconds: float) -> str:
     """Format time in seconds to hh:mm:ss format."""
@@ -238,12 +256,12 @@ def main():
                 time.sleep(0.3)
                 
                 # Get transcript
-                transcript = get_youtube_transcript(video_id)
-                transcript = json.dumps(transcript, indent=4) # Convert to JSON for debugging   
-                print(transcript)
-                transcript = json.loads(transcript)
-                print("123")
-                print(transcript)
+                
+                transcript = get_youtube_transcript(language, video_id)
+                # transcript = json.dumps(transcript, indent=4) # Convert to JSON for debugging   
+                # transcript = json.loads(transcript)
+                
+                # print(transcript)
                 
                 if transcript:
                     # Update progress
