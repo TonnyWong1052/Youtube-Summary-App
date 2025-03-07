@@ -242,7 +242,7 @@ def main():
                 transcript = json.dumps(transcript, indent=4) # Convert to JSON for debugging   
                 transcript = json.loads(transcript)
                 
-                # print(transcript)
+                print(transcript)
                 
                 if transcript:
                     # Update progress
