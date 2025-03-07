@@ -136,10 +136,11 @@ def get_youtube_transcript(language_code: str, video_id: str) -> List[Dict]:
     """Get the transcript of a YouTube video."""
     try:
         # First attempt with YouTubeTranscriptApi
+        raise Exception("Testing error handling")
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
         return transcript
     except Exception as e:
-        st.warning(f"YouTube Transcript API error: {str(e)}. Trying alternative API...")
+        # st.warning(f"YouTube Transcript API error: {str(e)}. Trying alternative API...")
         
         # Fallback to alternative API
         try:
@@ -166,8 +167,26 @@ def format_time(seconds: float) -> str:
 
 def generate_summary(transcript: List[Dict], language: str, summary_type: str) -> str:
     """Generate summary using LLM API based on selected summary type."""
-    transcript_text = "\n".join([f"{format_time(float(entry['start']))}: {entry['text']}" for entry in transcript if isinstance(entry, dict) and 'start' in entry and 'text' in entry])
-    
+    # transcript_text = "\n".join([f"{format_time(float(entry['start']))}: {entry['text']}" for entry in transcript if isinstance(entry, dict) and 'start' in entry and 'text' in entry])
+    # Load JSON data
+    transcript = json.dumps(transcript, indent=4)
+    transcript = json.loads(transcript)
+    transcript = transcript['transcript']
+
+    # Define the format_time function
+    def format_time(seconds):
+        minutes = int(seconds // 60)
+        seconds = int(seconds % 60)
+        return f"{minutes:02d}:{seconds:02d}"
+
+    # Extract and format transcript
+    transcript_text = "\n".join(
+        [f"{format_time(float(entry['start']))}: {entry['text']}" for entry in transcript if isinstance(entry, dict) and 'start' in entry and 'text' in entry]
+    )
+
+    # print(transcript_text)
+
+
     system_prompt = "You are a helpful assistant that creates summaries of YouTube videos from transcripts."
     
     # Adjust the prompt based on summary type
@@ -247,7 +266,7 @@ def main():
     cols = st.columns(1)
     cols2 = st.columns(2)
     with cols[0]:
-        youtube_url = st.text_input("", placeholder="Paste YouTube URL here...", key="youtube_url")
+        youtube_url = st.text_input("", placeholder="Paste YouTube URL here...", key="youtube_url", label_visibility="hidden")
 
     with cols2[0]:
         languages = {
@@ -258,7 +277,7 @@ def main():
             "es": "🇪🇸 Spanish",
             "ja": "🇯🇵 Japanese"
         }
-        language = st.selectbox("Summary Language", options=list(languages.keys()), format_func=lambda x: languages[x])
+        language = st.selectbox("Summary Language", options=list(languages.keys()), format_func=lambda x: languages[x], label_visibility="hidden")
         st.markdown('</div>', unsafe_allow_html=True)
     with cols2[1]:
         summary_type = {
@@ -266,7 +285,7 @@ def main():
             "Brief",
             "Detailed"
         }
-        summary_type = st.selectbox("Summary Type", ["Normal", "Brief", "Detailed"], index=0)
+        summary_type = st.selectbox("Summary Type", ["Normal", "Brief", "Detailed"], index=0, label_visibility="hidden")
         st.markdown('</div>', unsafe_allow_html=True)
 
     
@@ -296,7 +315,6 @@ def main():
                 # transcript = json.dumps(transcript, indent=4) # Convert to JSON for debugging   
                 # transcript = json.loads(transcript)
                 
-                # print(transcript)
                 
                 if transcript:
                     # Update progress
