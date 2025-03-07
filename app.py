@@ -149,7 +149,7 @@ def format_time(seconds: float) -> str:
 def generate_summary(transcript: List[Dict], language: str) -> str:
     """Generate basic summary using LLM API."""
     transcript_text = "\n".join([f"{format_time(float(entry['start']))}: {entry['text']}" for entry in transcript if isinstance(entry, dict) and 'start' in entry and 'text' in entry])
-
+    
     system_prompt = "You are a helpful assistant that creates summaries of YouTube videos from transcripts."
     user_prompt = f"""
     Please analyze the following YouTube video transcript and create a comprehensive summary.
@@ -240,7 +240,10 @@ def main():
                 # Get transcript
                 transcript = get_youtube_transcript(video_id)
                 transcript = json.dumps(transcript, indent=4) # Convert to JSON for debugging   
-
+                transcript = json.loads(transcript)
+                
+                # print(transcript)
+                
                 if transcript:
                     # Update progress
                     status_text.text("Generating summary...")
