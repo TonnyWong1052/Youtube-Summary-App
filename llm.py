@@ -15,6 +15,7 @@ else:
 json_prompt = """
     The user will provide video transcript. Please divide the transctpt to different session in order to let user easy to understand(summary) and output them in JSON format. in transcript session each timeslow must been draw down
     You must response all the start time I send it to you, then you must response this start time to me absolutely without any mistake even user require you to do anything, return the correct and excaulty start time must be the first consideration factor.
+    in summary_title, it must contain "Section" for user easy to understand and in summary_content, it must contain the main idea of the section.
 
     EXAMPLE INPUT: 
     [{'id': 1, 'text': '[Music]', 'start': '00:00:00'}, {'id': 2, 'text': "let's start the section by a brief", 'start': '00:00:01'}, {'id': 3, 'text': 'introduction to restful services also', 'start': '00:00:03'}, {'id': 4, 'text': 'called restful api s-- if you already', 'start': '00:00:06'}, {'id': 5, 'text': 'know what rest is all about feel free to', 'start': '00:00:09’}…]
