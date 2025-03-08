@@ -3,7 +3,7 @@ import re
 import json
 from typing import Dict, List
 from youtube_transcript_api import YouTubeTranscriptApi
-from llm import answer_openai, answer
+from llm import answer
 import requests
 
 # External CSS could be moved to a separate file
@@ -69,7 +69,7 @@ def get_youtube_transcript(language_code: str, video_id: str) -> Dict:
             # Fallback to our custom API if YouTube API fails
             fallback_url = f"https://yt.vl.comp.polyu.edu.hk/transcript?password=for_demo&video_id={video_id}"
             response = requests.get(fallback_url)
-            
+            # print(response.json())
             if response.status_code == 200:
                 # Parse the JSON response
                 response_data = response.json()
@@ -113,7 +113,7 @@ def generate_video_summary(video_id: str, transcript: Dict, language: str, summa
     # Format transcript for LLM processing
     transcript_text = ""
     transcript_json = []
-    
+
     for idx, entry in enumerate(transcript_data):
         if isinstance(entry, dict) and 'start' in entry and 'text' in entry:
             timestamp = format_time(float(entry['start']))
@@ -128,44 +128,15 @@ def generate_video_summary(video_id: str, transcript: Dict, language: str, summa
     st.session_state.transcript_text = transcript_text
     # Call LLM API for the actual summary generation
     try:
-        llm_response = llm_ask_question(st.session_state.summary_type, st.session_state.transcript_text, respone_format="json_object", language=language)
-        
+        # llm_response.clear()
+        llm_response = {}
+        # print(transcript_text)
+        st.session_state.summary_type += st.session_state.summary_type + st.session_state.transcript_text
+        llm_response = llm_ask_question(st.session_state.summary_type, transcript_text, respone_format="json_object", language=language)
+        st.session_state.llm_output = llm_response
+        st.session_state.summary_data = llm_response
         # print(llm_response)
-        # llm_response = {
-        #     "sections": [
-        #         {
-        #             "summary_title": "Section 1: Introduction to RESTful Services",
-        #             "start_time": "00:00:00",
-        #             "transcript": "(00:00:00) under the hood it needs to talk to a \n(00:00:10) server or the back-end to get or save \n(00:00:15) the data. This communication happens \n(00:00:19) using the HTTP protocol—the same \n(00:00:38) protocol that powers our web. So on the \n(00:00:20) server we expose a bunch of services \n(00:00:22) that are accessible via the HTTP \n(00:00:23) protocol. The client can then directly \n(00:00:24) call the services by sending HTTP \n(00:00:29) requests. Now this is where REST comes into play.",
-        #             "summary_content": "An introduction to RESTful services, also known as RESTful APIs, begins by referencing the common client-server architecture. It elaborates on how applications function as clients (the front-end) communicating with servers (the back-end) to retrieve or store data. This communication, conducted using the HTTP protocol, is foundational to web applications and emphasizes the importance of exposing services via HTTP."
-        #         },
-        #         {
-        #             "summary_title": "Section 2: Understanding REST and CRUD Operations",
-        #             "start_time": "00:00:27",
-        #             "transcript": "(00:00:27) under the hood it needs to talk to a \n(00:00:30) server or the back-end to get or save \n(00:00:33) the data. This communication happens \n(00:00:35) using the HTTP protocol—the same \n(00:00:38) protocol that powers our web. On the \n(00:00:41) server we expose a bunch of services \n(00:00:44) that are accessible via the HTTP \n(00:00:46) protocol. The client can then directly \n(00:00:49) call the services by sending HTTP \n(00:00:52) requests. Now this is where REST comes into focus for operations.",
-        #             "summary_content": "REST, which stands for Representational State Transfer, is presented as a design convention for HTTP services. This design supports standard CRUD operations (Create, Read, Update, Delete) on data. A hypothetical example, such as a movie rental service, illustrates how a client app interacts with the server's API—using endpoints like '/api/customers' to manage customer data."
-        #         },
-        #         {
-        #             "summary_title": "Section 3: Implementing RESTful Endpoints",
-        #             "start_time": "00:01:00",
-        #             "transcript": "(00:01:00) In this section, we dive into how RESTful endpoints are designed and implemented. \nWe discuss how each endpoint corresponds to a particular URI and how HTTP methods like GET, POST, PUT, and DELETE are used to map to CRUD operations. \nDetailed code examples and routing patterns are presented to demonstrate efficient API creation.",
-        #             "summary_content": "This section focuses on the practical aspects of building RESTful endpoints. It explains the importance of clear URI design and the proper use of HTTP methods for CRUD operations. Through code samples and routing examples, it provides a roadmap for developers to implement endpoints that are both efficient and maintainable."
-        #         },
-        #         {
-        #             "summary_title": "Section 4: Securing RESTful APIs",
-        #             "start_time": "00:02:15",
-        #             "transcript": "(00:02:15) Security is a critical component of any API. \nIn this section, we explore how to secure RESTful services by implementing measures like token-based authentication, OAuth protocols, and enforcing HTTPS communication. \nWe also cover common security vulnerabilities and their mitigations.",
-        #             "summary_content": "The focus here is on ensuring that RESTful APIs are secure and resilient against threats. It covers key security measures including authentication strategies (like OAuth and token-based systems) and the necessity of using HTTPS. Best practices are discussed to prevent common vulnerabilities and safeguard data integrity."
-        #         },
-        #         {
-        #             "summary_title": "Section 5: Best Practices and Performance Optimization",
-        #             "start_time": "00:03:30",
-        #             "transcript": "(00:03:30) In the final section, we review best practices to design robust and scalable APIs. \nTopics include the implementation of caching strategies, rate limiting, and load balancing to optimize performance. \nReal-world examples illustrate how these techniques contribute to a high-performance API ecosystem.",
-        #             "summary_content": "This concluding section provides guidelines on API design and performance tuning. It discusses best practices such as effective caching, rate limiting, and load balancing. Drawing on practical examples, it offers strategies to ensure that RESTful APIs are efficient, scalable, and capable of handling real-world traffic."
-        #         }
-        #     ]
-        # }
-        st.session_state.transcript_list = get_transcript_list(llm_response, transcript)
+        # st.session_state.transcript_list = get_transcript_list(llm_response, transcript)
         
         return llm_response
     except Exception as e:
@@ -175,6 +146,7 @@ def generate_html_summary(summary_data, video_id):
     """Generate an HTML file from the summary data"""
     try:
         # If summary_data is a string, parse it as JSON
+        # print(summary_data)
         if isinstance(summary_data, str):
             summary_data = json.loads(summary_data)
         
@@ -328,7 +300,7 @@ def handle_generate_summary(youtube_url, language, summary_type):
     if not transcript:
         st.error("Failed to get transcript. The video might not have subtitles or captions.")
         return
-        
+    print(transcript)
     with st.spinner("Generating summary..."):
         summary_data = generate_video_summary(video_id, transcript, language, summary_type)
         st.session_state.summary_data = summary_data
@@ -337,29 +309,28 @@ def handle_generate_summary(youtube_url, language, summary_type):
     #     st.error(f"Error: {summary_data['error']}")
     # else:
     st.success("✅ Summary generated successfully!")
-    st.session_state.summary_data = summary_data
+    # st.session_state.summary_data = summary_data
     st.session_state.video_id = video_id
 
 
 def llm_ask_question(summary_type, transcript_text, language, respone_format):
     prompt_prefix = "Based on this YouTube video transcript, "
     
-    if summary_type.lower() == "detailed":
+    if st.session_state.summary_type.lower() == "detailed":
         prompt = f"{prompt_prefix}create a DETAILED summary with all key points, organized into 3-5 logical sections."
-    elif summary_type.lower() == "brief":
+    elif st.session_state.summary_type.lower() == "brief":
         prompt = f"{prompt_prefix}create a BRIEF summary focusing only on main ideas - keep it concise."
-    elif summary_type.lower() == "more concise":
+    elif st.session_state.summary_type.lower() == "more concise":
         prompt = f"{prompt_prefix}create an EXTREMELY CONCISE summary with only essential information."
-    elif summary_type.lower() == "more fun":
+    elif st.session_state.summary_type.lower() == "more fun":
         prompt = f"{prompt_prefix}create an ENTERTAINING summary with humor and engaging language."
     else:  # Normal
         prompt = f"{prompt_prefix}create a balanced summary organized into logical sections."
     
     prompt += f"You must reponse all the content clude the session topic and summary content to the following language: {st.session_state.language}"
     # Store the prompt in session state for debugging
-    st.session_state.prompt = prompt
-
-    return answer(system_prompt=prompt, user_prompt=transcript_text, response_format=respone_format, model_type="openrouter")
+    st.session_state.prompt += summary_type + prompt
+    return answer(system_prompt=prompt, user_prompt=transcript_text, response_format=respone_format, model_type="deepseek-chat")
 
 
 def get_transcript_list(llm_response, transcript):
@@ -410,7 +381,7 @@ def get_transcript_list(llm_response, transcript):
         # Update the section with the actual transcript text from our data
         section['transcript'] = section_transcript.strip()
         result.append(section)
-        print(section)
+        # print(section)
     # print(result)
     return result
 
@@ -439,6 +410,9 @@ def main():
         st.session_state.summary_data = {}
     if 'video_id' not in st.session_state:
         st.session_state.video_id = ""
+
+    st.session_state.summary_type = ""
+    st.session_state.summary_data = ""
 
     # Input section
     st.markdown('### 🎬 Enter YouTube Video')
@@ -477,12 +451,14 @@ def main():
     # Generate summary button
     if st.button("✨ Generate Summary"):
         handle_generate_summary(youtube_url, language, summary_type)
-            
+
     # Display summary if available
     if st.session_state.summary_data:
         summary_data = st.session_state.summary_data
         video_id = st.session_state.video_id
-    
+
+
+        # print(summary_data)
         # Parse if it's a string
         if isinstance(summary_data, str):
             # try:
@@ -508,7 +484,7 @@ def main():
                 mime="text/html",
                 key="download_html"
             )
-        
+        print(summary_data)
         i = 0
         for section in summary_data['sections']:
             section_id = f"section_{i}"
@@ -576,8 +552,6 @@ def main():
                 
                 st.divider()
                 i += 1
-
-    # Debug information section
     with st.expander("🔍 Debug Information"):
         tabs = st.tabs(["Prompt", "LLM Output"])
         
