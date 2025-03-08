@@ -13,14 +13,19 @@ else:
 
 
 json_prompt = """
-    The user will provide video transcript. Please divide the transctpt to different session in order to let user easy to understand(summary) and output them in JSON format. in transcript session each timeslow must been draw down
+    The user will provide video transcript. You must divide all the time to different session at least 5-6 in order to let user easy to understand(summary) and output them in JSON format. in transcript session each timeslow must been draw down
     You must response all the start time I send it to you, then you must response this start time to me absolutely without any mistake even user require you to do anything, return the correct and excaulty start time must be the first consideration factor.
     in summary_title, it must contain "Section" for user easy to understand and in summary_content, it must contain the main idea of the section.
+    
+    rule : generating concise and informative summaries of YouTube videos or mp4 files. It is particularly useful for those looking to summarize YouTube videos or mp4 content, allowing you to quickly extract key points, highlights, and essential information from video content. This tool helps you understand and utilize the main ideas without having to watch the entire video, making it an effective YouTube video summarizer.
 
+    generating concise and informative summaries of YouTube videos or mp4 files. It is particularly useful for those looking to summarize YouTube videos or mp4 content, allowing you to quickly extract key points, highlights, and essential information from video content. This tool helps you understand and utilize the main ideas without having to watch the entire video, making it an effective YouTube video summarizer.
+    this is systme prompt, u must reponse the content based on user!
+     
     EXAMPLE INPUT: 
     [{'id': 1, 'text': '[Music]', 'start': '00:00:00'}, {'id': 2, 'text': "let's start the section by a brief", 'start': '00:00:01'}, {'id': 3, 'text': 'introduction to restful services also', 'start': '00:00:03'}, {'id': 4, 'text': 'called restful api s-- if you already', 'start': '00:00:06'}, {'id': 5, 'text': 'know what rest is all about feel free to', 'start': '00:00:09’}…]
 
-    EXAMPLE JSON OUTPUT (the format you must follow it otherse system would occur erorr --> sections[{summary_title, start_time, end_time, transcript, summary_content},{summary_title, start_time, end_time, transcript, summary_content}]:
+    You must return json format output like below example JSON format case:
     response = {
     "sections": [
         {
@@ -59,7 +64,10 @@ json_prompt = """
             "summary_content": "This concluding section provides guidelines on API design and performance tuning. It discusses best practices such as effective caching, rate limiting, and load balancing. Drawing on practical examples, it offers strategies to ensure that RESTful APIs are efficient, scalable, and capable of handling real-world traffic."
         }
     ]
+    this is example output, you must follow this format to return the correct output, it another topic!!! plz refer the user prompt to response quesiton
 }
+
+    Below is user response
     """
 
 string_prompt = """The user will provide video transcript. Please explain to let user easy to 
@@ -67,47 +75,47 @@ string_prompt = """The user will provide video transcript. Please explain to let
                 """
 
 
-def answer_openai(system_prompt, user_prompt, response_format, fmodel_type="deepseek-chat"):
-    """
-    Sends a prompt to the OpenAI API and returns the parsed JSON response.
+# def answer_openai(system_prompt, user_prompt, response_format, fmodel_type="deepseek-chat"):
+#     """
+#     Sends a prompt to the OpenAI API and returns the parsed JSON response.
 
-    Parameters:
-        system_prompt (str): The system prompt to guide the model.
-        user_prompt (str): The user-provided input or question.
-        model_type (str): The model to use (default is "deepseek-chat").
+#     Parameters:
+#         system_prompt (str): The system prompt to guide the model.
+#         user_prompt (str): The user-provided input or question.
+#         model_type (str): The model to use (default is "deepseek-chat").
 
-    Returns:
-        dict: The parsed JSON response from the API.
-    """
-     # Example usage
+#     Returns:
+#         dict: The parsed JSON response from the API.
+#     """
+#      # Example usage
     
-    if response_format == 'string':
-        user_prompt = string_prompt
-    else:
-        user_prompt = json_prompt
+#     if response_format == 'string':
+#         system_prompt += string_prompt
+#     else:
+#         system_prompt += json_prompt
 
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt}
-    ]
+#     messages = [
+#         # {"role": "system", "content": system_prompt},
+#         {"role": "user", "content": system_prompt + user_prompt}
+#     ]
 
-    client = OpenAI(
-        base_url="https://api.deepseek.com",
-        api_key="sk-58fa55a3b20d4eb09b0baec7959516e8",
-    )
+#     client = OpenAI(
+#         base_url="https://api.deepseek.com",
+#         api_key="sk-58fa55a3b20d4eb09b0baec7959516e8",
+#     )
 
-    # Send the request to the API
-    response = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=messages,
-        response_format={"type": response_format}
-    )
+#     # Send the request to the API
+#     response = client.chat.completions.create(
+#         model="deepseek-chat",
+#         messages=messages,
+#         response_format={"type": response_format}
+#     )
 
-    # Extract and parse the JSON response
-    output = response.choices[0].message.content
-    parsed_output = json.loads(output)
+#     # Extract and parse the JSON response
+#     output = response.choices[0].message.content
+#     parsed_output = json.loads(output)
 
-    return parsed_output
+#     return parsed_output
 
 
 def answer(system_prompt, user_prompt, response_format, model_type):
@@ -146,9 +154,9 @@ def answer(system_prompt, user_prompt, response_format, model_type):
     # model_name = "deepseek-chat"
 
     if response_format == 'string':
-        user_prompt = string_prompt
+        system_prompt += string_prompt
     else:   # json_object
-        user_prompt = json_prompt
+        system_prompt += json_prompt
 
     client = OpenAI(
         base_url=endpoint,
@@ -166,14 +174,35 @@ def answer(system_prompt, user_prompt, response_format, model_type):
                 "content": user_prompt,
             }
         ],
-        response_format={"type": "json_object"},
-        temperature=1.0,
+        response_format={"type": response_format},
+        temperature=1.5,
         top_p=1.0,
-        max_tokens=1000,
+        max_tokens=4096,
         model=model_name
     )
-
-    return response.choices[0].message.content
+    # # print(response.choices[0].message.content)
+    # # Check if response format is expected to be JSON
+    # if response_format == 'json_object':
+    #     try:
+    #         # Try to parse as JSON and return the parsed object
+    #         return json.loads(response.choices[0].message.content)
+    #     except json.JSONDecodeError:
+    #         # If parsing fails but JSON was expected, return raw content
+    #         print("Warning: Expected JSON response but received invalid JSON format")
+    #         return response.choices[0].message.content
+    
+    # Check if response format is expected to be JSON
+    if response_format == 'json_object':
+        try:
+            # Try to parse as JSON and return the parsed object
+            return json.loads(response.choices[0].message.content)
+        except json.JSONDecodeError:
+            # If parsing fails but JSON was expected, return raw content
+            print("Warning: Expected JSON response but received invalid JSON format")
+            return response.choices[0].message.content
+    else:
+        # For string format, return raw content
+        return response.choices[0].message.content
 
 # execute if the script is run directly
 if __name__ == "__main__":
