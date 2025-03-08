@@ -20,7 +20,7 @@ json_prompt = """
     EXAMPLE INPUT: 
     [{'id': 1, 'text': '[Music]', 'start': '00:00:00'}, {'id': 2, 'text': "let's start the section by a brief", 'start': '00:00:01'}, {'id': 3, 'text': 'introduction to restful services also', 'start': '00:00:03'}, {'id': 4, 'text': 'called restful api s-- if you already', 'start': '00:00:06'}, {'id': 5, 'text': 'know what rest is all about feel free to', 'start': '00:00:09’}…]
 
-    EXAMPLE JSON OUTPUT (the format you must follow it otherse system would occur erorr):
+    EXAMPLE JSON OUTPUT (the format you must follow it otherse system would occur erorr --> sections[{summary_title, start_time, end_time, transcript, summary_content},{summary_title, start_time, end_time, transcript, summary_content}]:
     response = {
     "sections": [
         {
