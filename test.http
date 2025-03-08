@@ -1,0 +1,39 @@
+GET http://localhost:5000/todos
+
+HTTP/1.1 403  - Forbidden
+content-length: 0
+server: AirTunes/845.5.1
+x-apple-processingtime: 0
+x-apple-requestreceivedtimestamp: 107659887
+###
+POST http://localhost:5000/todos
+Content-Type: application/json
+{
+"task": "play badminton"
+}
+
+HTTP/1.1 403  - Forbidden
+content-length: 0
+server: AirTunes/845.5.1
+x-apple-processingtime: 0
+x-apple-requestreceivedtimestamp: 107659942
+###
+PUT http://localhost:5000/todos/1
+Content-Type: application/json
+{
+"task": "updated task"
+}
+
+HTTP/1.1 403  - Forbidden
+content-length: 0
+server: AirTunes/845.5.1
+x-apple-processingtime: 0
+x-apple-requestreceivedtimestamp: 107659973
+###
+DELETE http://localhost:5000/todos/1
+
+HTTP/1.1 403  - Forbidden
+content-length: 0
+server: AirTunes/845.5.1
+x-apple-processingtime: 0
+x-apple-requestreceivedtimestamp: 107659997
