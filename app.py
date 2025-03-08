@@ -509,7 +509,8 @@ def main():
                 key="download_html"
             )
         
-        for i, section in enumerate(summary_data['sections']):
+        i = 0
+        for section in summary_data['sections']:
             section_id = f"section_{i}"
             if section_id not in st.session_state.section_states:
                 st.session_state.section_states[section_id] = {
@@ -525,15 +526,15 @@ def main():
             
             # transcript_array = get_transcript_list(llm_response, transcript)
             with st.container():
-                # st.subheader(f"Section {i+1}: {section['summary_title']}")
+            # st.subheader(f"Section {i+1}: {section['summary_title']}")
                 st.subheader(f"{section['summary_title']}")
                 st.markdown(f"Start Time: {youtube_link}", unsafe_allow_html=True)
                 st.markdown("<p>Transcript:</p>", unsafe_allow_html=True)
                 st.text_area("", section['transcript'], height=100, key=f"transcript_{i}", 
                     disabled=True, label_visibility="collapsed")
-                
-                
-                # Display the summary section label
+            
+            
+            # Display the summary section label
                 st.markdown("Transcript Summary:", unsafe_allow_html=True)
 
                 # st.session_state[f"summary_{i}"] = section["summary_content"]
@@ -555,7 +556,7 @@ def main():
                         pass
                     if section_state["saved"]:
                         pass
-                        # st.success("Content saved!")
+                    # st.success("Content saved!")
                 
                 with btn2:
                     if st.button("🔍 More Detail", key=f"detail_section_{i}", on_click=handle_detail_button, args=(section_id,)):
@@ -574,6 +575,7 @@ def main():
                         st.info("Generating more fun content...")
                 
                 st.divider()
+                i += 1
 
     # Debug information section
     with st.expander("🔍 Debug Information"):
