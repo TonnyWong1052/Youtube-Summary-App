@@ -492,9 +492,9 @@ def main():
             #     return
         
         # Check if sections exists after parsing
-        if "sections" not in summary_data:
-            st.error("Summary data does not contain sections")
-            return
+        # if "sections" not in summary_data:
+        #     st.error("Summary data does not contain sections")
+        #     return
             
         # Add download button for HTML summary
         html_content = generate_html_summary(summary_data, video_id)
